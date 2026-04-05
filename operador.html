@@ -114,19 +114,29 @@ const senhaRef = ref(db,"senhaAtual");
 const histRef  = ref(db,"historico");
 
 window.chamar = () => {
-  const hora = new Date().toLocaleTimeString("pt-BR");
+
+  if (!numero.value) {
+    alert("Digite o número da senha");
+    return;
+  }
+
+  const horaAtual = new Date().toLocaleTimeString("pt-BR");
 
   const dados = {
     tipo: tipo.value,
     numero: Number(numero.value),
     guiche: guiche.value,
-    hora: hora
+    hora: horaAtual
   };
 
-  set(senhaRef,dados);
-  push(histRef,dados);
+  // Atualiza a senha atual
+  set(senhaRef, dados);
 
-  numero.value="";
+  // Grava no histórico
+  push(histRef, dados);
+
+  // ❌ NÃO limpar o campo
+  // numero.value = "";
 };
 
 window.atualizarCor = () => {
