@@ -13,6 +13,7 @@ body{
   text-align:center;
 }
 header{padding:30px;}
+
 .card{
   margin:30px auto;
   width:420px;
@@ -20,6 +21,7 @@ header{padding:30px;}
   border-radius:12px;
   padding:40px 20px;
 }
+
 .tipo{font-size:22px;}
 .senha{font-size:110px;font-weight:bold;}
 .guiche{font-size:26px;}
@@ -30,10 +32,30 @@ header{padding:30px;}
   margin-top:20px;
   border-radius:0 0 12px 12px;
 }
+
+.historico{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin-top:40px;
+}
+
+.hist-card{
+  background:white;
+  color:#000;
+  width:160px;
+  padding:15px;
+  border-radius:8px;
+}
+.hist-num{
+  font-size:32px;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
+
 <header>
   <h1>Chamada de Senhas</h1>
   <small>Sistema de Atendimento</small>
@@ -43,8 +65,10 @@ header{padding:30px;}
   <div class="tipo" id="tipo">---</div>
   <div class="senha" id="senha">000</div>
   <div class="guiche" id="guiche">---</div>
-  <div class="hora" id="hora">--:--:--</div>
+  <div class="hora" id="hora">--:--</div>
 </div>
+
+<div class="historico" id="historico"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -63,19 +87,44 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const senhaRef = ref(db,"senhaAtual");
 
+const senhaRef = ref(db,"senhaAtual");
+const histRef  = ref(db,"historico");
+
+// senha atual
 onValue(senhaRef, snap=>{
   if(!snap.exists()) return;
   const d = snap.val();
-  tipo.innerText = d.tipo;
-  senha.innerText = String(d.numero).padStart(3,"0");
+
+  tipo.innerText   = d.tipo;
+  senha.innerText  = String(d.numero).padStart(3,"0");
   guiche.innerText = d.guiche;
-  hora.innerText = "Chamada às " + d.hora;
-  const voz = new SpeechSynthesisUtterance(`Senha ${d.numero}. ${d.tipo}. ${d.guiche}`);
+  hora.innerText   = "Chamada às " + d.hora;
+
+  const voz = new SpeechSynthesisUtterance(
+    `Senha ${d.numero}. ${d.tipo}. ${d.guiche}`
+  );
   voz.lang="pt-BR";
   speechSynthesis.speak(voz);
 });
+
+// histórico – últimos 5
+onValue(histRef, snap=>{
+  historico.innerHTML="";
+  const dados = Object.values(snap.val()||{}).slice(-5).reverse();
+
+  dados.forEach(d=>{
+    historico.innerHTML += `
+      <div class="hist-card">
+        <small>${d.tipo}</small>
+        <div class="hist-num">${String(d.numero).padStart(3,"0")}</div>
+        <small>${d.guiche}</small><br>
+        <small>${d.hora}</small>
+      </div>
+    `;
+  });
+});
 </script>
+
 </body>
 </html>
