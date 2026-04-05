@@ -188,6 +188,23 @@ onValue(histRef, snap=>{
     `;
   });
 });
+
+  function atualizarRelogio() {
+  const agora = new Date();
+
+  const hora = agora.toLocaleTimeString("pt-BR", {
+    timeZone: "America/Belem",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+
+  document.getElementById("relogio").innerText = hora;
+}
+
+setInterval(atualizarRelogio, 1000);
+atualizarRelogio();
+``
 </script>
 
 </body>
