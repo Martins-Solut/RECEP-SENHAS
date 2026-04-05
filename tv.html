@@ -156,14 +156,16 @@ import { initializeApp }
 import { getDatabase, ref, onValue }
   from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyB_IhJWewS_qlOqUcwli3Mf04wC6D3wn5Q",
   authDomain: "recep-senhas.firebaseapp.com",
   databaseURL: "https://recep-senhas-default-rtdb.firebaseio.com",
   projectId: "recep-senhas",
-  storageBucket: "recep-senhas.appspot.com",
+  storageBucket: "recep-senhas.firebasestorage.app",
   messagingSenderId: "906681930470",
-  appId: "1:906681930470:web:2083f2455d4794eda42127"
+  appId: "1:906681930470:web:2083f2455d4794eda42127",
+  measurementId: "G-W6D0Y89YED"
 };
 
 const app = initializeApp(firebaseConfig);
