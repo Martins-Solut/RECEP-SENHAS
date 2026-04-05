@@ -8,7 +8,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#0f172a,#020617);
+  background: radial-gradient(circle at top,#0f172a,#020617);
   color: white;
   height: 100vh;
   display: flex;
@@ -16,48 +16,87 @@ body {
   justify-content: center;
 }
 
+/* CARD */
 .app {
   background: #020617;
-  padding: 30px;
-  border-radius: 14px;
-  width: 360px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.6);
+  padding: 32px;
+  border-radius: 16px;
+  width: 380px;
+  box-shadow: 0 25px 50px rgba(0,0,0,.6);
+  text-align: center;
 }
 
 h2 {
-  text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 
-select, input, button {
+/* CAMPOS */
+select, input {
   width: 100%;
   padding: 14px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   font-size: 16px;
-  border-radius: 8px;
-  border: none;
-}
-
-select, input {
+  border-radius: 10px;
+  border: 1px solid #334155;
   background: #020617;
   color: white;
-  border: 1px solid #334155;
+  text-align: center;
 }
 
-button {
-  font-weight: bold;
+/* REMOVE SETAS ↑ ↓ */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* SENHA + SETA */
+.senha-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.senha-wrapper input {
+  flex: 1;
+}
+
+.btn-next {
+  width: 52px;
+  border-radius: 10px;
+  border: none;
+  font-size: 22px;
   cursor: pointer;
+  background: #334155;
+  color: white;
+}
+.btn-next:hover {
+  background: #475569;
 }
 
-.prioridade { background:#dc2626; }
-.exames { background:#2563eb; }
-.resultados { background:#16a34a; }
+/* BOTÃO */
+button.chamar {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+}
+button.chamar:hover {
+  background: #1d4ed8;
+}
 
 small {
   display: block;
-  text-align: center;
+  margin-top: 12px;
   color: #94a3b8;
-  margin-top: 10px;
 }
 </style>
 </head>
@@ -67,13 +106,17 @@ small {
 <div class="app">
   <h2>Painel do Operador</h2>
 
-  <select id="tipo" onchange="atualizarCor()">
+  <select id="tipo">
     <option value="Exames">Exames</option>
     <option value="Prioridade">Prioridade</option>
     <option value="Resultados">Resultados</option>
   </select>
 
-  <input id="numero" type="number" placeholder="Número da senha">
+  <!-- CAMPO SENHA + SETA -->
+  <div class="senha-wrapper">
+    <input id="numero" type="number" placeholder="Número da senha">
+    <button class="btn-next" onclick="proximaSenha()">→</button>
+  </div>
 
   <select id="guiche">
     <option>Guichê 1</option>
@@ -83,67 +126,56 @@ small {
     <option>Guichê 5</option>
   </select>
 
-  <button id="btn" class="exames" onclick="chamar()">
-    Chamar Senha
-  </button>
+  <button class="chamar" onclick="chamar()">Chamar Senha</button>
 
   <small>Senha será exibida e gravada no histórico</small>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, set, push }
-from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyB_IhJWewS_qlOqUcwli3Mf04wC6D3wn5Q",
   authDomain: "recep-senhas.firebaseapp.com",
   databaseURL: "https://recep-senhas-default-rtdb.firebaseio.com",
   projectId: "recep-senhas",
-  storageBucket: "recep-senhas.firebasestorage.app",
+  storageBucket: "recep-senhas.appspot.com",
   messagingSenderId: "906681930470",
-  appId: "1:906681930470:web:2083f2455d4794eda42127",
-  measurementId: "G-W6D0Y89YED"
+  appId: "1:906681930470:web:2083f2455d4794eda42127"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db  = getDatabase(app);
 
 const senhaRef = ref(db,"senhaAtual");
 const histRef  = ref(db,"historico");
 
+/* CHAMAR SENHA */
 window.chamar = () => {
-
   if (!numero.value) {
     alert("Digite o número da senha");
     return;
   }
 
-  const horaAtual = new Date().toLocaleTimeString("pt-BR");
-
   const dados = {
     tipo: tipo.value,
     numero: Number(numero.value),
     guiche: guiche.value,
-    hora: horaAtual
+    hora: new Date().toLocaleTimeString("pt-BR")
   };
 
-  // Atualiza a senha atual
   set(senhaRef, dados);
-
-  // Grava no histórico
   push(histRef, dados);
-
-  // ❌ NÃO limpar o campo
-  // numero.value = "";
 };
 
-window.atualizarCor = () => {
-  btn.className =
-    tipo.value==="Prioridade" ? "prioridade" :
-    tipo.value==="Resultados" ? "resultados" :
-    "exames";
+/* PRÓXIMA SENHA */
+window.proximaSenha = () => {
+  const atual = Number(numero.value || 0);
+  numero.value = atual + 1;
 };
 </script>
 
