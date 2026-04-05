@@ -5,49 +5,48 @@
 <title>Painel da TV</title>
 
 <style>
-
-  #relogio {
-  position: absolute;
-  top: 20px;
-  right: 25px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #111;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 10px 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-``
 /* ===== GERAL ===== */
 body{
   margin:0;
   height:100vh;
   font-family: Arial, sans-serif;
   background: #ffffff;
-  color:white;
+  color:#111;
   text-align:center;
+  position: relative;
 }
 
+/* ===== RELÓGIO ===== */
+#relogio{
+  position:absolute;
+  top:20px;
+  right:25px;
+  font-size:28px;
+  font-weight:bold;
+  background: rgba(255,255,255,0.9);
+  padding:10px 18px;
+  border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.25);
+}
+
+/* ===== CABEÇALHO ===== */
 header{
   padding:25px;
 }
-
 header h1{
   margin:0;
 }
-
 header small{
-  opacity:0.7;
+  color:#555;
 }
 
 /* ===== CARD PRINCIPAL ===== */
 .card-principal{
-  margin: 10px auto 30px auto;
-  width: 460px;
+  margin:10px auto 30px auto;
+  width:460px;
   border-radius:16px;
   padding:40px 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.6);
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
 }
 
 .tipo{
@@ -83,35 +82,41 @@ header small{
 }
 
 .hist-card{
-  width:210px;
-  padding:20px;
-  border-radius:12px;
-  font-size:18px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.35);
+  width:220px;
+  padding:22px;
+  border-radius:14px;
+  font-size:20px;
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
 }
 
 .hist-num{
-  font-size:46px;
+  font-size:48px;
   font-weight:bold;
-  margin:10px 0;
+  margin:12px 0;
 }
 
 /* ===== CORES POR TIPO ===== */
 .prioridade{
   background:#dc2626;
+  color:white;
 }
 
 .exames{
   background:#2563eb;
+  color:white;
 }
 
 .resultados{
   background:#16a34a;
+  color:white;
 }
 </style>
 </head>
 
 <body>
+
+<!-- RELÓGIO -->
+<div id="relogio">--:--:--</div>
 
 <header>
   <h1>Chamada de Senhas</h1>
@@ -153,10 +158,23 @@ const db  = getDatabase(app);
 const senhaRef = ref(db,"senhaAtual");
 const histRef  = ref(db,"historico");
 
-/* ===== FUNÇÃO DE COR ===== */
-function classePorTipo(tipo){
-  return tipo === "Prioridade" ? "prioridade" :
-         tipo === "Resultados" ? "resultados" :
+/* ===== RELÓGIO (BELÉM-PA) ===== */
+function atualizarRelogio(){
+  const hora = new Date().toLocaleTimeString("pt-BR",{
+    timeZone:"America/Belem",
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit"
+  });
+  document.getElementById("relogio").innerText = hora;
+}
+setInterval(atualizarRelogio,1000);
+atualizarRelogio();
+
+/* ===== FUNÇÃO COR ===== */
+function corPorTipo(tipo){
+  return tipo==="Prioridade" ? "prioridade" :
+         tipo==="Resultados" ? "resultados" :
          "exames";
 }
 
@@ -172,26 +190,26 @@ onValue(senhaRef, snap=>{
   hora.innerText   = "Chamada às " + d.hora;
 
   cardPrincipal.className =
-    "card-principal " + classePorTipo(d.tipo);
+    "card-principal " + corPorTipo(d.tipo);
 
   const voz = new SpeechSynthesisUtterance(
     `Senha ${d.numero}. ${d.tipo}. ${d.guiche}`
   );
-  voz.lang = "pt-BR";
+  voz.lang="pt-BR";
   speechSynthesis.speak(voz);
 });
 
 /* ===== HISTÓRICO ===== */
-onValue(histRef, snap=>{
-  historico.innerHTML = "";
+onValue(histRef,snap=>{
+  historico.innerHTML="";
 
-  const dados = Object.values(snap.val() || {})
+  const dados = Object.values(snap.val()||{})
     .slice(-5)
     .reverse();
 
   dados.forEach(d=>{
     historico.innerHTML += `
-      <div class="hist-card ${classePorTipo(d.tipo)}">
+      <div class="hist-card ${corPorTipo(d.tipo)}">
         <div>${d.tipo}</div>
         <div class="hist-num">
           ${String(d.numero).padStart(3,"0")}
@@ -202,24 +220,8 @@ onValue(histRef, snap=>{
     `;
   });
 });
-
-  function atualizarRelogio() {
-  const agora = new Date();
-
-  const hora = agora.toLocaleTimeString("pt-BR", {
-    timeZone: "America/Belem",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-
-  document.getElementById("relogio").innerText = hora;
-}
-
-setInterval(atualizarRelogio, 1000);
-atualizarRelogio();
-``
 </script>
 
 </body>
 </html>
+``
