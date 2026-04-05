@@ -6,17 +6,22 @@
 
 <style>
 body {
+  margin: 0;
   font-family: Arial, sans-serif;
-  background: #f3f4f6;
+  background: linear-gradient(135deg,#0f172a,#020617);
+  color: white;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.box {
-  max-width: 420px;
-  margin: 60px auto;
-  background: white;
+.app {
+  background: #020617;
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+  border-radius: 14px;
+  width: 360px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.6);
 }
 
 h2 {
@@ -29,24 +34,29 @@ select, input, button {
   padding: 14px;
   margin-bottom: 15px;
   font-size: 16px;
+  border-radius: 8px;
+  border: none;
+}
+
+select, input {
+  background: #020617;
+  color: white;
+  border: 1px solid #334155;
 }
 
 button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
 }
 
-button:hover {
-  background: #1e40af;
-}
+.prioridade { background:#dc2626; }
+.exames { background:#2563eb; }
+.resultados { background:#16a34a; }
 
 small {
   display: block;
   text-align: center;
-  color: #666;
+  color: #94a3b8;
   margin-top: 10px;
 }
 </style>
@@ -54,10 +64,10 @@ small {
 
 <body>
 
-<div class="box">
+<div class="app">
   <h2>Painel do Operador</h2>
 
-  <select id="tipo">
+  <select id="tipo" onchange="atualizarCor()">
     <option value="Exames">Exames</option>
     <option value="Prioridade">Prioridade</option>
     <option value="Resultados">Resultados</option>
@@ -66,26 +76,25 @@ small {
   <input id="numero" type="number" placeholder="Número da senha">
 
   <select id="guiche">
-    <option value="Guichê 1">Guichê 1</option>
-    <option value="Guichê 2">Guichê 2</option>
-    <option value="Guichê 3">Guichê 3</option>
-    <option value="Guichê 4">Guichê 4</option>
-    <option value="Guichê 5">Guichê 5</option>
+    <option>Guichê 1</option>
+    <option>Guichê 2</option>
+    <option>Guichê 3</option>
+    <option>Guichê 4</option>
+    <option>Guichê 5</option>
   </select>
 
-  <button onclick="chamar()">Chamar Senha</button>
+  <button id="btn" class="exames" onclick="chamar()">
+    Chamar Senha
+  </button>
 
-  <small>Ao chamar, a senha será exibida na TV e entrará no histórico</small>
+  <small>Senha será exibida e gravada no histórico</small>
 </div>
 
 <script type="module">
-import { initializeApp } 
-  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, set, push }
+from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-import { getDatabase, ref, set, push } 
-  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-/* 🔴 CONFIGURAÇÃO DO SEU FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyB_IhJWewS_qlOqUcwli3Mf04wC6D3wn5Q",
   authDomain: "recep-senhas.firebaseapp.com",
@@ -95,40 +104,34 @@ const firebaseConfig = {
   messagingSenderId: "906681930470",
   appId: "1:906681930470:web:2083f2455d4794eda42127"
 };
-/* 🔴 FIM */
 
 const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const db = getDatabase(app);
 
-/* Referências no banco */
-const senhaRef = ref(db, "senhaAtual");
-const histRef  = ref(db, "historico");
+const senhaRef = ref(db,"senhaAtual");
+const histRef  = ref(db,"historico");
 
-/* Função principal */
 window.chamar = () => {
-
-  if (!numero.value) {
-    alert("Digite o número da senha");
-    return;
-  }
-
-  const horaAtual = new Date().toLocaleTimeString("pt-BR");
+  const hora = new Date().toLocaleTimeString("pt-BR");
 
   const dados = {
     tipo: tipo.value,
     numero: Number(numero.value),
     guiche: guiche.value,
-    hora: horaAtual
+    hora: hora
   };
 
-  /* ✅ Atualiza a senha atual */
-  set(senhaRef, dados);
+  set(senhaRef,dados);
+  push(histRef,dados);
 
-  /* ✅ Cria um novo registro no histórico */
-  push(histRef, dados);
+  numero.value="";
+};
 
-  /* Limpa o campo número */
-  numero.value = "";
+window.atualizarCor = () => {
+  btn.className =
+    tipo.value==="Prioridade" ? "prioridade" :
+    tipo.value==="Resultados" ? "resultados" :
+    "exames";
 };
 </script>
 
