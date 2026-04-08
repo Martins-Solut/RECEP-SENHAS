@@ -57,15 +57,17 @@ small {
 <div class="totem">
   <h1>RETIRE SUA SENHA</h1>
 
-  <button id="btnPrioridade" class="prioridade">PRIORIDADE</button>
-  <button id="btnExames" class="exames">EXAMES</button>
-  <button id="btnResultados" class="resultados">RESULTADOS</button>
+  <button class="prioridade" id="btnPrioridade">PRIORIDADE</button>
+  <button class="exames" id="btnExames">EXAMES</button>
+  <button class="resultados" id="btnResultados">RESULTADOS</button>
 
   <small>Dirija-se à recepção e aguarde a chamada no painel</small>
 </div>
 
-<!-- QZ Tray -->
-<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js === QZ CONFIG === */
+<!-- ✅ QZ TRAY (script normal) -->
+<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.
+<script>
+/* ===== QZ CONFIGURATION ===== */
 qz.security.setCertificatePromise(() => Promise.resolve(""));
 qz.security.setSignaturePromise(() => Promise.resolve(""));
 
@@ -80,70 +82,7 @@ async function conectarQZ() {
   }
 }
 
+/* ✅ FUNÇÃO GLOBAL */
 async function imprimir(tipo, numero, dataHora) {
   await conectarQZ();
 
-  const cfg = qz.configs.create(impressora);
-  const dados = [
-    '\x1B\x40',
-    '\x1B\x61\x01',
-    '\x1B\x21\x30',
-    'CLÍNICA CENSO\n\n',
-    'SENHA\n',
-    tipo.toUpperCase() + '\n\n',
-    '\x1B\x21\x38',
-    String(numero).padStart(3,'0') + '\n\n',
-    '\x1B\x21\x00',
-    'Aguarde a chamada\n',
-    dataHora + '\n\n\n',
-    '\x1D\x56\x41'
-  ];
-
-  await qz.print(cfg, dados);
-}
-</script>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, get, set }
-from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-/* FIREBASE */
-const firebaseConfig = {
-  apiKey: "AIzaSyB_IhJWewS_qlOqUcwli3Mf04wC6D3wn5Q",
-  authDomain: "recep-senhas.firebaseapp.com",
-  databaseURL: "https://recep-senhas-default-rtdb.firebaseio.com",
-  projectId: "recep-senhas",
-  storageBucket: "recep-senhas.appspot.com",
-  messagingSenderId: "906681930470",
-  appId: "1:906681930470:web:2083f2455d4794eda42127"
-};
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-
-async function retirarSenha(tipo) {
-  const contadorRef = ref(db, "contadores/" + tipo);
-  const snap = await get(contadorRef);
-  const numero = (snap.val() || 0) + 1;
-
-  await set(contadorRef, numero);
-
-  const dataHora = new Date().toLocaleString("pt-BR");
-  await imprimir(tipo, numero, dataHora);
-}
-
-/* ✅ ASSOCIA EVENTOS APÓS TUDO CARREGAR */
-document.getElementById("btnPrioridade")
-  .addEventListener("click", () => retirarSenha("Prioridade"));
-
-document.getElementById("btnExames")
-  .addEventListener("click", () => retirarSenha("Exames"));
-
-document.getElementById("btnResultados")
-  .addEventListener("click", () => retirarSenha("Resultados"));
-</script>
-
-</body>
-</html>
-``
