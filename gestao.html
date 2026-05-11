@@ -19,7 +19,6 @@ body{
   color:#111;
 }
 
-/* LOGIN */
 #login{
   height:100vh;
   display:flex;
@@ -55,7 +54,6 @@ body{
   cursor:pointer;
 }
 
-/* APP */
 #app{
   display:none;
   padding:40px;
@@ -63,8 +61,8 @@ body{
 
 .topo{
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
   margin-bottom:20px;
 }
 
@@ -77,12 +75,6 @@ body{
   margin-right:8px;
 }
 
-.filtros button{
-  padding:8px 14px;
-  cursor:pointer;
-}
-
-/* CARDS */
 .cards{
   display:flex;
   gap:20px;
@@ -110,7 +102,6 @@ body{
   margin-top:10px;
 }
 
-/* GRAFICO */
 .grafico-box{
   max-width:600px;
   margin:0 auto;
@@ -118,11 +109,6 @@ body{
   padding:20px;
   border-radius:16px;
   box-shadow:0 10px 25px rgba(0,0,0,.15);
-}
-
-canvas{
-  width:100% !important;
-  height:auto !important;
 }
 </style>
 </head>
@@ -150,9 +136,7 @@ canvas{
       border:none;
       border-radius:8px;
       cursor:pointer;
-    ">
-      📄 Exportar PDF
-    </button>
+    ">📄 Exportar PDF</button>
   </div>
 
   <div class="filtros">
@@ -186,7 +170,7 @@ window.entrar = () => {
   if(senha.value === "admin123"){
     login.style.display="none";
     app.style.display="block";
-    carregarDados();
+    zerarDashboard();
   }else{
     alert("Senha incorreta");
   }
@@ -206,8 +190,32 @@ const histRef = ref(db,"historico");
 
 let chart;
 
-/* DADOS */
+/* ZERAR */
+function zerarDashboard(){
+  total.innerText = 0;
+  exames.innerText = 0;
+  particular.innerText = 0;
+  resultados.innerText = 0;
+  prioridade.innerText = 0;
+
+  if(chart){
+    chart.destroy();
+    chart = null;
+  }
+}
+
+/* FILTRAR */
 window.carregarDados = () => {
+  zerarDashboard();
+
+  const inicio = dataInicio.value;
+  const fim = dataFim.value;
+
+  if(!inicio || !fim){
+    alert("Selecione a data inicial e final");
+    return;
+  }
+
   onValue(histRef, snap=>{
     const dados = Object.values(snap.val() || {});
 
@@ -220,12 +228,16 @@ window.carregarDados = () => {
     };
 
     dados.forEach(d=>{
-      cont.total++;
-      const t = d.tipo.toLowerCase();
-      if(t==="exames") cont.exames++;
-      if(t==="exame particular") cont.particular++;
-      if(t==="resultados") cont.resultados++;
-      if(t==="prioridade") cont.prioridade++;
+      if(!d.data) return;
+
+      if(d.data >= inicio && d.data <= fim){
+        cont.total++;
+        const t = d.tipo.toLowerCase();
+        if(t==="exames") cont.exames++;
+        if(t==="exame particular") cont.particular++;
+        if(t==="resultados") cont.resultados++;
+        if(t==="prioridade") cont.prioridade++;
+      }
     });
 
     total.innerText = cont.total;
@@ -240,8 +252,6 @@ window.carregarDados = () => {
 
 /* GRAFICO */
 function renderGrafico(c){
-  if(chart) chart.destroy();
-
   chart = new Chart(grafico,{
     type:"bar",
     data:{
@@ -252,10 +262,7 @@ function renderGrafico(c){
       }]
     },
     options:{
-      responsive:true,
-      plugins:{
-        legend:{ display:false }
-      }
+      plugins:{ legend:{ display:false } }
     }
   });
 }
@@ -263,9 +270,7 @@ function renderGrafico(c){
 /* PDF */
 window.exportarPDF = async () => {
   const { jsPDF } = window.jspdf;
-  const area = document.getElementById("app");
-
-  const canvas = await html2canvas(area,{ scale:2 });
+  const canvas = await html2canvas(document.getElementById("app"),{scale:2});
   const img = canvas.toDataURL("image/png");
 
   const pdf = new jsPDF("p","mm","a4");
@@ -279,3 +284,4 @@ window.exportarPDF = async () => {
 
 </body>
 </html>
+``
