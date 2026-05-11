@@ -167,6 +167,7 @@ window.chamar = () => {
     numero: Number(numero.value),
     guiche: guiche.value,
     hora: new Date().toLocaleTimeString("pt-BR")
+      data: agora.toISOString().slice(0, 10) // ✅ YYYY-MM-DD
   };
 
   set(senhaRef, dados);
