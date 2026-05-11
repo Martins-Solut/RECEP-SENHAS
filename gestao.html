@@ -163,15 +163,15 @@ body{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 /* LOGIN */
 window.entrar = () => {
-  if(senha.value === "admin123"){
-    login.style.display="none";
-    app.style.display="block";
+  if (senha.value === "admin123") {
+    login.style.display = "none";
+    app.style.display = "block";
     zerarDashboard();
-  }else{
+  } else {
     alert("Senha incorreta");
   }
 };
@@ -186,9 +186,9 @@ const firebaseConfig = {
 
 const appFB = initializeApp(firebaseConfig);
 const db = getDatabase(appFB);
-const histRef = ref(db,"historico");
+const histRef = ref(db, "historico");
 
-let chart;
+let chart = null;
 
 /* ZERAR */
 function zerarDashboard(){
@@ -204,65 +204,79 @@ function zerarDashboard(){
   }
 }
 
+/* CONTAR */
+function contar(d, cont){
+  cont.total++;
+  const t = d.tipo.toLowerCase();
+  if (t === "exames") cont.exames++;
+  if (t === "exame particular") cont.particular++;
+  if (t === "resultados") cont.resultados++;
+  if (t === "prioridade") cont.prioridade++;
+}
+
 /* FILTRAR */
-window.carregarDados = () => {
+window.carregarDados = async () => {
   zerarDashboard();
 
   const inicio = dataInicio.value;
   const fim = dataFim.value;
 
-  if(!inicio || !fim){
+  if (!inicio || !fim) {
     alert("Selecione a data inicial e final");
     return;
   }
 
-  onValue(histRef, snap=>{
-    const dados = Object.values(snap.val() || {});
+  const snap = await get(histRef);
+  const dados = Object.values(snap.val() || {});
 
-    let cont = {
-      total:0,
-      exames:0,
-      particular:0,
-      resultados:0,
-      prioridade:0
-    };
+  let cont = {
+    total: 0,
+    exames: 0,
+    particular: 0,
+    resultados: 0,
+    prioridade: 0
+  };
 
-    dados.forEach(d=>{
-      if(!d.data) return;
+  dados.forEach(d => {
 
-      if(d.data >= inicio && d.data <= fim){
-        cont.total++;
-        const t = d.tipo.toLowerCase();
-        if(t==="exames") cont.exames++;
-        if(t==="exame particular") cont.particular++;
-        if(t==="resultados") cont.resultados++;
-        if(t==="prioridade") cont.prioridade++;
-      }
-    });
+    /* ✅ IGNORAR SENHA 000 */
+    if (Number(d.numero) === 0) return;
 
-    total.innerText = cont.total;
-    exames.innerText = cont.exames;
-    particular.innerText = cont.particular;
-    resultados.innerText = cont.resultados;
-    prioridade.innerText = cont.prioridade;
+    /* ✅ SEM DATA (HISTÓRICO ANTIGO) */
+    if (!d.data) {
+      contar(d, cont);
+      return;
+    }
 
-    renderGrafico(cont);
-  },{ onlyOnce:true });
+    /* ✅ COM DATA (FILTRO POR PERÍODO) */
+    if (d.data >= inicio && d.data <= fim) {
+      contar(d, cont);
+    }
+  });
+
+  total.innerText = cont.total;
+  exames.innerText = cont.exames;
+  particular.innerText = cont.particular;
+  resultados.innerText = cont.resultados;
+  prioridade.innerText = cont.prioridade;
+
+  renderGrafico(cont);
 };
 
 /* GRAFICO */
 function renderGrafico(c){
-  chart = new Chart(grafico,{
-    type:"bar",
-    data:{
-      labels:["Exames","Exame Particular","Resultados","Prioridade"],
-      datasets:[{
-        data:[c.exames,c.particular,c.resultados,c.prioridade],
-        backgroundColor:["#2563eb","#eab308","#16a34a","#dc2626"]
+  chart = new Chart(grafico, {
+    type: "bar",
+    data: {
+      labels: ["Exames", "Exame Particular", "Resultados", "Prioridade"],
+      datasets: [{
+        data: [c.exames, c.particular, c.resultados, c.prioridade],
+        backgroundColor: ["#2563eb", "#eab308", "#16a34a", "#dc2626"]
       }]
     },
-    options:{
-      plugins:{ legend:{ display:false } }
+    options: {
+      plugins: { legend: { display: false } },
+      responsive: true
     }
   });
 }
@@ -270,14 +284,14 @@ function renderGrafico(c){
 /* PDF */
 window.exportarPDF = async () => {
   const { jsPDF } = window.jspdf;
-  const canvas = await html2canvas(document.getElementById("app"),{scale:2});
+  const canvas = await html2canvas(document.getElementById("app"), { scale: 2 });
   const img = canvas.toDataURL("image/png");
 
-  const pdf = new jsPDF("p","mm","a4");
+  const pdf = new jsPDF("p", "mm", "a4");
   const w = pdf.internal.pageSize.getWidth();
   const h = (canvas.height * w) / canvas.width;
 
-  pdf.addImage(img,"PNG",0,0,w,h);
+  pdf.addImage(img, "PNG", 0, 0, w, h);
   pdf.save("relatorio-atendimentos.pdf");
 };
 </script>
