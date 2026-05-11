@@ -34,7 +34,7 @@ body{
   border-radius:12px;
 }
 
-/* CARD */
+/* CARD PRINCIPAL */
 .card-principal{
   margin:10px auto 30px auto;
   width:460px;
@@ -43,15 +43,31 @@ body{
   box-shadow:0 20px 40px rgba(0,0,0,.25);
 }
 
-.tipo{ font-size:40px; }
-.senha{ font-size:140px; font-weight:bold; }
-.guiche{ font-size:34px; margin-top:10px; }
+/* 🔥 TAMANHOS RESTAURADOS */
+.tipo{
+  font-size:28px;
+  margin-bottom:10px;
+}
+
+.senha{
+  font-size:130px;   /* GRANDE novamente */
+  font-weight:bold;
+  margin:10px 0;
+}
+
+.guiche{
+  font-size:32px;
+  margin-top:10px;
+}
 
 .hora{
   background:white;
+  color:#111;
   padding:10px;
   border-radius:10px;
   margin-top:20px;
+  font-weight:bold;
+  font-size:18px;
 }
 
 /* HISTÓRICO */
@@ -60,7 +76,6 @@ body{
   justify-content:center;
   gap:20px;
 }
-
 
 .hist-card{
   width:220px;
@@ -91,10 +106,10 @@ body{
 <div id="relogio"></div>
 
 <div id="cardPrincipal" class="card-principal exames">
-  <div id="tipo"></div>
-  <div id="senha">000</div>
-  <div id="guiche"></div>
-  <div id="hora"></div>
+  <div class="tipo" id="tipo"></div>
+  <div class="senha" id="senha">000</div>
+  <div class="guiche" id="guiche"></div>
+  <div class="hora" id="hora"></div>
 </div>
 
 <div class="historico" id="historico"></div>
@@ -121,7 +136,7 @@ setInterval(()=>{
   relogio.innerText = new Date().toLocaleTimeString("pt-BR");
 },1000);
 
-/* MAPEAMENTO */
+/* LÓGICA */
 function normalizar(tipo){
   return tipo.toLowerCase().trim();
 }
@@ -149,6 +164,7 @@ onValue(senhaRef, snap=>{
   const d = snap.val();
 
   tipo.innerText = d.tipo;
+
   senha.innerText =
     prefixo(d.tipo) +
     String(d.numero).padStart(3,"0");
@@ -185,5 +201,7 @@ onValue(histRef,snap=>{
   });
 });
 </script>
+
 </body>
 </html>
+``
