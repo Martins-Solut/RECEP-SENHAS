@@ -96,6 +96,7 @@ body{
 .exames{ background:#2563eb; color:white; }
 .exame-particular{ background:#eab308; color:black; }
 .resultados{ background:#16a34a; color:white; }
+  
 </style>
 </head>
 
@@ -154,6 +155,8 @@ function prefixo(tipo){
   if(t==="prioridade") return "PDI";
   if(t==="resultados") return "RES";
   if(t==="exame particular") return "EXP";
+  if(t==="Exames Laboratoriais") return "EXL";
+  if(t==="outros exames") return "OUT";
   return "EXM";
 }
 
